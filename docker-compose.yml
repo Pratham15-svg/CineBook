@@ -1,16 +1,17 @@
 # CineBook | docker-compose.yml
-# Starts PostgreSQL 16. On the FIRST start (empty data volume) Postgres
+# Starts PostgreSQL (uses the locally saved postgres:latest image, no download needed). On the FIRST start (empty data volume) Postgres
 # automatically runs every .sql file in ./db in alphabetical order:
 #   00_extensions.sql -> 01_tables.sql -> 02_constraints.sql -> 03_triggers.sql -> 04_procedures.sql
 # (files in sub-folders such as db/tests and db/seed are NOT auto-run)
 services:
   db:
-    image: postgres:16
+    image: postgres:latest
     container_name: cinebook-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-cinebook}
+      PGDATA: /var/lib/postgresql/data   # keeps the data path the same on every Postgres version
     ports:
       - "5432:5432"
     volumes:
