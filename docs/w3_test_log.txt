@@ -1,0 +1,100 @@
+Pager usage is off.
+Border style is 2.
+BEGIN
+CREATE TABLE
+CREATE FUNCTION
+DO
+
+=== W3 CONSTRAINT TEST LOG ===
++------+-------+--------------------------------------------------------------+----------+-------+--------+
+| Test | Rule  |                      What was attempted                      | Expected |  Got  | Result |
++------+-------+--------------------------------------------------------------+----------+-------+--------+
+| T01  | R5    | Book 7 seats in one booking                                  | P0001    | P0001 | PASS   |
+| T02  | R5    | Book 0 seats (empty seat list)                               | 23514    | 23514 | PASS   |
+| T03  | R1    | Book a seat that is not on the screen                        | P0001    | P0001 | PASS   |
+| T04  | R3/R5 | Book a show that already started                             | P0001    | P0001 | PASS   |
+| T05  | R10   | Use an expired coupon                                        | P0001    | P0001 | PASS   |
+| T06  | R10   | Use a coupon code that does not exist                        | P0001    | P0001 | PASS   |
+| T07  | R10   | Coupon with max_uses=1: first use                            | OK       | OK    | PASS   |
+| T08  | R10   | Coupon with max_uses=1: second use                           | P0001    | P0001 | PASS   |
+| T09  | R4/R5 | Hold + pay a 2-seat booking (total 500)                      | OK       | OK    | PASS   |
+| T10  | R2    | Double-book a seat already CONFIRMED                         | 23505    | 23505 | PASS   |
+| T11  | R5    | Pay twice for the same booking                               | P0001    | P0001 | PASS   |
+| T12  | R6    | Cancel a booking that was never paid (HELD)                  | P0001    | P0001 | PASS   |
+| T13  | R5    | Pay after the 10-minute hold expired                         | P0001    | P0001 | PASS   |
+| T14  | R5    | Expired hold frees the seat for someone else                 | OK       | OK    | PASS   |
+| T15  | R7    | Failed payment, then retry (2 payment rows)                  | OK       | OK    | PASS   |
+| T16  | R7    | Record a failed payment on a CONFIRMED booking               | P0001    | P0001 | PASS   |
+| T17  | R6    | Cancel 90 minutes before the show                            | P0001    | P0001 | PASS   |
+| T18  | R6    | Cancel 10h before show: 50% refund (75 of 150)               | OK       | OK    | PASS   |
+| T19  | R6/R9 | Cancel 3 days before: 100% refund, seats freed, 3 audit rows | OK       | OK    | PASS   |
+| T20  | R2    | Re-book a seat after its booking was cancelled               | OK       | OK    | PASS   |
+| T21  | R3    | Overlapping show on the same screen                          | 23P01    | 23P01 | PASS   |
+| T22  | R3    | Same time on a different screen is allowed                   | OK       | OK    | PASS   |
+| T23  | R3    | Back-to-back show (end = next start) is allowed              | OK       | OK    | PASS   |
+| T24  | R3    | Show whose end time is before its start                      | 23514    | 23514 | PASS   |
+| T25  | R4    | Show price = 0                                               | 23514    | 23514 | PASS   |
+| T26  | R4    | Show price = -50                                             | 23514    | 23514 | PASS   |
+| T27  | R1    | Seat with category VIP                                       | 23514    | 23514 | PASS   |
+| T28  | R8    | User with role SUPERUSER                                     | 23514    | 23514 | PASS   |
+| T29  | R10   | PERCENT coupon worth 150%                                    | 23514    | 23514 | PASS   |
+| T30  | R4    | price_paid greater than list_price                           | 23514    | 23514 | PASS   |
+| T31  | R8    | Duplicate e-mail, different letter case                      | 23505    | 23505 | PASS   |
+| T32  | R8    | Assign a CUSTOMER as venue manager                           | P0001    | P0001 | PASS   |
+| T33  | R1/R3 | Booking line with a seat from another screen                 | 23503    | 23503 | PASS   |
+| T34  | R4    | Booking line with wrong seat category / no price             | 23503    | 23503 | PASS   |
+| T35  | R5    | Set status CONFIRMED with no SUCCESS payment                 | P0001    | P0001 | PASS   |
+| T36  | R2/R9 | Delete a booking that has history                            | 23503    | 23503 | PASS   |
+| T37  | R2    | SEEDED: double-book a seat the seed already sold             | 23505    | 23505 | PASS   |
+| T38  | R3    | SEEDED: overlap with a show the seed created                 | 23P01    | 23P01 | PASS   |
++------+-------+--------------------------------------------------------------+----------+-------+--------+
+(38 rows)
+
+
+=== Which constraint / trigger caught it, and the database message ===
++------+----------------------------+------------------------------------------------------------------------------------------------------+
+| Test |     Constraint / index     |                                           Database message                                           |
++------+----------------------------+------------------------------------------------------------------------------------------------------+
+| T01  |                            | Booking 989 must have between 1 and 6 seats, has 7                                                   |
+| T02  | chk_booking_total_positive | new row for relation "booking" violates check constraint "chk_booking_total_positive"                |
+| T03  |                            | Seat Z99 does not exist on screen 26                                                                 |
+| T04  |                            | Show 304 has already started (2026-10-30 13:13:46.76609+00); booking is not allowed                  |
+| T05  |                            | Coupon W3EXPIRED is invalid or expired                                                               |
+| T06  |                            | Coupon NO-SUCH-CODE is invalid or expired                                                            |
+| T08  |                            | Coupon W3LIMIT1 has reached its usage limit                                                          |
+| T10  | uq_active_seat_per_show    | duplicate key value violates unique constraint "uq_active_seat_per_show"                             |
+| T11  |                            | Booking 994 is CONFIRMED and cannot be paid for                                                      |
+| T12  |                            | Booking 996 is HELD and cannot be cancelled                                                          |
+| T13  |                            | Booking 996 hold has expired                                                                         |
+| T16  |                            | Booking 994 is CONFIRMED ; a failed payment can only be recorded for a HELD booking                  |
+| T17  |                            | Booking 999 cannot be cancelled: show starts in less than 2 hours                                    |
+| T21  | excl_show_no_overlap       | conflicting key value violates exclusion constraint "excl_show_no_overlap"                           |
+| T24  | chk_show_time_order        | new row for relation "movie_show" violates check constraint "chk_show_time_order"                    |
+| T25  | chk_show_price_positive    | new row for relation "show_price" violates check constraint "chk_show_price_positive"                |
+| T26  | chk_show_price_positive    | new row for relation "show_price" violates check constraint "chk_show_price_positive"                |
+| T27  | chk_seat_category          | new row for relation "seat" violates check constraint "chk_seat_category"                            |
+| T28  | chk_user_role              | new row for relation "app_user" violates check constraint "chk_user_role"                            |
+| T29  | chk_coupon_value           | new row for relation "coupon" violates check constraint "chk_coupon_value"                           |
+| T30  | chk_bs_price_paid_range    | new row for relation "booking_seat" violates check constraint "chk_bs_price_paid_range"              |
+| T31  | uq_user_email_lower        | duplicate key value violates unique constraint "uq_user_email_lower"                                 |
+| T32  |                            | VENUE.manager_id 53 must belong to a user with role MANAGER, found role CUSTOMER                     |
+| T33  | fk_bs_show_screen          | insert or update on table "booking_seat" violates foreign key constraint "fk_bs_show_screen"         |
+| T34  | fk_bs_seat                 | insert or update on table "booking_seat" violates foreign key constraint "fk_bs_seat"                |
+| T35  |                            | Booking 1002 is CONFIRMED but has no matching SUCCESS payment of amount 200.00                       |
+| T36  | fk_bs_booking              | update or delete on table "booking" violates foreign key constraint "fk_bs_booking" on table "bookin |
+| T37  | uq_active_seat_per_show    | duplicate key value violates unique constraint "uq_active_seat_per_show"                             |
+| T38  | excl_show_no_overlap       | conflicting key value violates exclusion constraint "excl_show_no_overlap"                           |
++------+----------------------------+------------------------------------------------------------------------------------------------------+
+(29 rows)
+
+
+=== SUMMARY ===
++-------------+--------+--------+
+| Total tests | Passed | Failed |
++-------------+--------+--------+
+|          38 |     38 |      0 |
++-------------+--------+--------+
+(1 row)
+
+ROLLBACK
+Nothing was saved: the test data was rolled back.
