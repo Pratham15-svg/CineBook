@@ -1,0 +1,4 @@
+Faker>=24.0
+psycopg2-binary>=2.9
+bcrypt>=4.0
+tzdata   # Windows has no built-in timezone database

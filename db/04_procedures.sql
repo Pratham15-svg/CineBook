@@ -5,25 +5,6 @@
 -- it does not build this logic itself in JavaScript.
 
 -- =======================================================================
--- PROCEDURE 0: sp_expire_holds
--- R5: marks every HELD booking whose 10-minute hold has passed as
--- EXPIRED. trg_release_seats then frees its seats and trg_booking_audit
--- logs the change. Called at the start of every booking attempt and
--- every minute by the backend's scheduled clean-up job.
--- =======================================================================
-CREATE OR REPLACE PROCEDURE sp_expire_holds()
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE BOOKING
-       SET status = 'EXPIRED'
-     WHERE status = 'HELD'
-       AND hold_expires_at < now();
-END;
-$$;
-
-
--- =======================================================================
 -- PROCEDURE 1: sp_create_booking
 -- Holds a set of seats for a show for 10 minutes.
 -- p_seat_numbers is an array of seat_no values on that show's screen,
@@ -56,9 +37,12 @@ DECLARE
     v_discount_amt  NUMERIC(10, 2) := 0;
     v_total_amount  NUMERIC(10, 2);
 BEGIN
-    -- R5: release any expired holds first (frees their seats via
-    -- trg_release_seats before we try to grab seats ourselves).
-    CALL sp_expire_holds();
+    -- R5: release any expired holds first, across the whole system,
+    -- not just this show -- cheap because of the status index.
+    UPDATE BOOKING
+       SET status = 'EXPIRED'
+     WHERE status = 'HELD'
+       AND hold_expires_at < now();
 
     -- Snapshot details for the ticket (R11)
     SELECT ms.screen_id, m.title, v.name, sc.screen_name, ms.start_time
@@ -202,11 +186,12 @@ BEGIN
         RAISE EXCEPTION 'Booking % is % and cannot be paid for', p_booking_id, v_status;
     END IF;
 
-    -- Note: we only raise here. An UPDATE to EXPIRED placed before the
-    -- RAISE would be rolled back together with the failed transaction,
-    -- so it would never stick. Expired holds are released instead by
-    -- sp_expire_holds (start of every booking attempt + scheduled job).
     IF v_hold_expires < now() THEN
+        -- Note: we only raise here. An UPDATE to EXPIRED placed before the
+        -- RAISE would be rolled back together with the failed transaction,
+        -- so it would never actually stick. Expired holds are released
+        -- instead by sp_expire_holds (db/05_views_indexes.sql), run at the
+        -- start of every booking attempt and on a schedule.
         RAISE EXCEPTION 'Booking % hold has expired', p_booking_id;
     END IF;
 
