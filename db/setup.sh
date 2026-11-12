@@ -6,7 +6,7 @@ set -euo pipefail
 DB="${1:-cinebook}"
 cd "$(dirname "$0")"
 for f in 00_extensions.sql 01_tables.sql 02_constraints.sql 03_triggers.sql \
-         04_procedures.sql 05_views_indexes.sql; do
+         04_procedures.sql 05_indexes_views.sql; do
   echo ">> $f"
   psql -v ON_ERROR_STOP=1 -q -d "$DB" -f "$f"
 done
