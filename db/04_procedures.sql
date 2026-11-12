@@ -190,7 +190,7 @@ BEGIN
         -- Note: we only raise here. An UPDATE to EXPIRED placed before the
         -- RAISE would be rolled back together with the failed transaction,
         -- so it would never actually stick. Expired holds are released
-        -- instead by sp_expire_holds (db/05_views_indexes.sql), run at the
+        -- instead by sp_expire_holds (db/05_indexes_views.sql), run at the
         -- start of every booking attempt and on a schedule.
         RAISE EXCEPTION 'Booking % hold has expired', p_booking_id;
     END IF;

@@ -1,4 +1,4 @@
--- CineBook | 05_views_indexes.sql   (Step 1 of the build plan)
+-- CineBook | 05_indexes_views.sql   (Step 1 of the build plan)
 -- Run this after 04_procedures.sql.
 -- Adds: (1) indexes, (2) the "show must be in the future" rule,
 --       (3) sp_expire_holds, (4) sp_record_failed_payment,
