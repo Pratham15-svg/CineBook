@@ -17,7 +17,7 @@ How it works
      revenue and peak-hours dashboards have history to show.
      (No trigger fires on those columns, see 03_triggers.sql.)
   4. Bookings for shows that already started need the bypass setting
-     cinebook.allow_past_booking (see 05_views_indexes.sql); it is switched
+     cinebook.allow_past_booking (see 05_indexes_views.sql); it is switched
      on per transaction only for those.
 
 Usage

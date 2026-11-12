@@ -1,5 +1,5 @@
 -- CineBook | db/tests/step1_test.sql
--- Checks everything added in 05_views_indexes.sql.
+-- Checks everything added in 05_indexes_views.sql.
 -- Runs in one transaction and ROLLS BACK: leaves no data behind.
 \set ON_ERROR_STOP on
 BEGIN;
