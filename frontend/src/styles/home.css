@@ -1,0 +1,194 @@
+
+.cinema-home {
+  min-height: 100vh;
+  background: rgba(8, 7, 12, 0.38);
+  color: #fff;
+}
+
+/* Navigation */
+
+.cinema-nav {
+  height: 82px;
+  padding: 0 7%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(8,7,12,0.92);
+  position: relative;
+  z-index: 2;
+}
+
+.cinema-logo {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.cinema-logo span {
+  color: #e0318c;
+}
+
+.cinema-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.cinema-nav-links a {
+  color: #c9c5d0;
+  font-size: 14px;
+  transition: color 150ms ease;
+}
+
+.cinema-nav-links a:hover {
+  color: #fff;
+}
+
+.nav-login {
+  background: linear-gradient(135deg,#8b2fc9,#e0318c);
+  color: white !important;
+  padding: 11px 25px;
+  border: none;
+  border-radius: 30px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Hero section */
+
+.cinema-hero {
+  min-height: calc(100vh - 82px);
+  display: flex;
+  align-items: center;
+  padding: 80px 8%;
+  position: relative;
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(8,7,12,0.96) 0%,
+      rgba(8,7,12,0.82) 45%,
+      rgba(8,7,12,0.25) 100%
+    ),
+    linear-gradient(
+      0deg,
+      rgba(8,7,12,0.55),
+      transparent 55%
+    ),
+    url('/cinema-hero.png');
+
+  background-size: cover;
+  background-position: center;
+}
+
+.hero-content {
+  max-width: 760px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-eyebrow {
+  color: #e65bb1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  margin-bottom: 25px;
+}
+
+.hero-content h1 {
+  font-family: var(--font-display);
+  font-size: clamp(52px, 7vw, 94px);
+  line-height: 0.98;
+  letter-spacing: -4px;
+  margin: 0;
+  font-weight: 800;
+}
+
+.hero-content h1 span {
+  background: linear-gradient(135deg,#e0318c,#a33de0);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-description {
+  color: #c0bbc9;
+  font-size: 17px;
+  line-height: 1.8;
+  margin-top: 28px;
+}
+
+.hero-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 25px;
+  padding: 17px 30px;
+  background: linear-gradient(135deg,#8b2fc9,#e0318c);
+  color: white;
+  border-radius: 40px;
+  font-weight: 700;
+  transition: transform 150ms ease;
+}
+
+.hero-button:hover {
+  transform: scale(1.04);
+}
+
+.hero-button span {
+  font-size: 23px;
+}
+
+.hero-bottom-text {
+  margin-top: 75px;
+  color: #77717e;
+  font-size: 10px;
+  letter-spacing: 4px;
+}
+
+/* Mobile */
+
+@media (max-width: 700px) {
+  .cinema-nav {
+    padding: 0 5%;
+  }
+
+  .cinema-logo {
+    font-size: 24px;
+  }
+
+  .cinema-nav-links {
+    gap: 12px;
+  }
+
+  .cinema-nav-links a {
+    font-size: 11px;
+  }
+
+  .cinema-hero {
+    padding: 65px 7%;
+    background-position: 60% center;
+  }
+
+  .hero-content h1 {
+    font-size: 55px;
+    letter-spacing: -2px;
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .hero-bottom-text {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+}

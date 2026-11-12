@@ -1,0 +1,131 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-base: #0a0a0f;
+  --bg-raised: #14141a;
+  --bg-raised-2: #1c1c24;
+  --border: #262630;
+
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1ad;
+  --text-tertiary: #6b6b78;
+
+  --accent-gradient: linear-gradient(
+    135deg,
+    #8b2fc9 0%,
+    #e0318c 100%
+  );
+
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'Inter', sans-serif;
+
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  position: relative;
+}
+
+/* Site-wide cinema backdrop: a fixed, slowly zooming/panning photo sitting
+   behind every page (a CSS "Ken Burns" effect, no video file needed), with
+   a dark overlay so text stays readable and a faint moving sheen on top
+   for a subtle sense of motion, like something is always running back there. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background-image:
+    linear-gradient(180deg, rgba(8,7,12,0.42) 0%, rgba(8,7,12,0.55) 55%, rgba(8,7,12,0.72) 100%),
+    url('/cinema-hero.png');
+  background-size: cover;
+  background-position: center;
+  animation: backdropKenBurns 22s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: -10%;
+  z-index: -2;
+  background: radial-gradient(
+    circle at 30% 20%,
+    rgba(139, 47, 201, 0.10),
+    transparent 45%
+  ),
+  radial-gradient(
+    circle at 75% 80%,
+    rgba(224, 49, 140, 0.10),
+    transparent 45%
+  );
+  animation: backdropSheen 14s ease-in-out infinite alternate;
+}
+
+@keyframes backdropKenBurns {
+  0%   { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.12) translate(-1.5%, -1.5%); }
+}
+
+@keyframes backdropSheen {
+  0%   { opacity: 0.6; transform: translate(0, 0); }
+  100% { opacity: 1; transform: translate(2%, -2%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after {
+    animation: none;
+  }
+}
+
+button, input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.primary-btn {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 9px;
+  font-weight: 600;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 12px 22px;
+  border-radius: 9px;
+}
+
+.movie-card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 150ms ease-out, border-color 150ms ease-out;
+}
+
+.movie-card:hover {
+  transform: translateY(-4px);
+  border-color: #8b2fc9;
+}
