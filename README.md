@@ -30,7 +30,7 @@ CineBook is a full-stack, database-backed movie ticket booking system in the sty
 | Phase 5: Docker Compose integration, integration and load tests, `EXPLAIN ANALYZE` comparison | Done |
 | Phase 6: final report and demo | Planned |
 
-The full design document (5 pages) is in [`docs/CineBook_MidSem_Report.pdf`](docs/CineBook_MidSem_Report.pdf). Phase notes (handover, viva preparation, test write-up) are in `docs/phase 1/` to `docs/phase 3/`, and the Phase 5 results and performance comparison are in [`docs/phase5/`](docs/phase5/).
+The full design document (5 pages) is in [`docs/CineBook_MidSem_Report.pdf`](docs/CineBook_MidSem_Report.pdf). Phase notes (handover, viva preparation, test write-up) are in `docs/phases/`, and the Phase 5 results and performance comparison are in [`docs/phase5/`](docs/phase5/).
 
 ## Database Design Summary
 
