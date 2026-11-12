@@ -51,7 +51,7 @@ The diagram is a conceptual ER/EER model in Chen notation (foreign keys are not 
 
 ### Read-path design (API performance)
 
-Showing one ticket should not need joins across user, booking, booking seat, seat, show, movie and venue. So `booking_seat` is a self-contained ticket line (seat number, category, list price, price paid), and `booking` stores a write-once snapshot of the show details (`movie_title`, `venue_name`, `screen_name`, `show_start`), like an invoice. The user comes from the JWT. Ticket detail is then one primary-key lookup plus one small range scan, and "my bookings" is one index scan on `(user_id, booked_at DESC)` with no joins. This is exposed as the view `v_ticket`. Joins and aggregates are reserved for admin reports. The final submission will compare `EXPLAIN ANALYZE` of the naive join and the snapshot query.
+Showing one ticket should not need joins across user, booking, booking seat, seat, show, movie and venue. So `booking_seat` is a self-contained ticket line (seat number, category, list price, price paid), and `booking` stores a write-once snapshot of the show details (`movie_title`, `venue_name`, `screen_name`, `show_start`), like an invoice. The user comes from the JWT. Ticket detail is then one primary-key lookup plus one small range scan, and "my bookings" is one index scan on `(user_id, booked_at DESC)` with no joins. This is exposed as the view `v_ticket`. Joins and aggregates are reserved for admin reports. The `EXPLAIN ANALYZE` comparison of the naive join and the snapshot query is in `docs/phase5/EXPLAIN_COMPARISON.md`.
 
 ## Application Design
 
@@ -88,7 +88,7 @@ Architecture: **Front End <-> Backend <-> PostgreSQL**. Business-critical rules 
 |   |-- 00_extensions.sql       # btree_gist
 |   |-- 01_tables.sql           # 13 tables
 |   |-- 02_constraints.sql      # CHECKs and the exclusion constraint
-|   |-- 03_triggers.sql         # 5 triggers
+|   |-- 03_triggers.sql         # 5 triggers (the 6th is in 05)
 |   |-- 04_procedures.sql       # sp_create_booking, sp_confirm_booking, sp_cancel_booking
 |   |-- 05_indexes_views.sql    # indexes, sp_expire_holds, sp_record_failed_payment, 6 views
 |   |-- setup.sh                # manual (non-Docker) schema setup
