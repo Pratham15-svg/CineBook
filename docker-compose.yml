@@ -1,27 +1,61 @@
-# CineBook | docker-compose.yml
-# Starts PostgreSQL (uses the locally saved postgres:latest image, no download needed). On the FIRST start (empty data volume) Postgres
-# automatically runs every .sql file in ./db in alphabetical order:
-#   00_extensions.sql -> 01_tables.sql -> 02_constraints.sql -> 03_triggers.sql -> 04_procedures.sql -> 05_views_indexes.sql
-# (files in sub-folders such as db/tests and db/seed are NOT auto-run)
 services:
   db:
-    image: postgres:latest
-    container_name: cinebook-db
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-cinebook}
-      PGDATA: /var/lib/postgresql/data   # keeps the data path the same on every Postgres version
-    ports:
-      - "5432:5432"
     volumes:
       - cinebook_pgdata:/var/lib/postgresql/data
-      - ./db:/docker-entrypoint-initdb.d:ro
+      - ./db/00_extensions.sql:/docker-entrypoint-initdb.d/00_extensions.sql:ro
+      - ./db/01_tables.sql:/docker-entrypoint-initdb.d/01_tables.sql:ro
+      - ./db/02_constraints.sql:/docker-entrypoint-initdb.d/02_constraints.sql:ro
+      - ./db/03_triggers.sql:/docker-entrypoint-initdb.d/03_triggers.sql:ro
+      - ./db/04_procedures.sql:/docker-entrypoint-initdb.d/04_procedures.sql:ro
+      - ./db/05_indexes_views.sql:/docker-entrypoint-initdb.d/05_indexes_views.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-cinebook}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
-      retries: 10
-
+      retries: 20
+  backend:
+    build: ./backend
+    environment:
+      PORT: 5050
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-cinebook}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_POOL_MAX: ${DB_POOL_MAX:-10}
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-change-this-secret}
+      JWT_EXPIRES_IN: 2h
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:5050:5050"
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+  seed:
+    build:
+      context: .
+      dockerfile: db/seed/Dockerfile
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-cinebook}
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: [tools]
 volumes:
   cinebook_pgdata:
