@@ -1,6 +1,6 @@
 # CineBook Phase 3 — Backend API and Verification Report
 
-**Prepared:** 6 November 2026  
+**Prepared:** 8 November 2026  
 **Scope:** Local backend verification performed during Phase 3.
 
 ## 1. Objective
@@ -63,6 +63,24 @@ The implementation uses reporting views including `v_revenue_venue_month`, `v_sh
 | RBAC-03 | Admin | `GET /api/bookings/me` | 403 | 403 |
 
 All three negative role-access tests returned the expected HTTP 403 response.
+
+## 7A. Seat-by-seat map endpoint (added 8 November 2026)
+
+**Endpoint:** `GET /api/shows/:id/seats`
+
+The route was added to `src/routes/showRoutes.js` and handled by `getShowSeats` in `src/controllers/showController.js`. The final controller calls the existing PostgreSQL function `fn_seat_map($1)`, which returns seat number, category, show-specific price, and seat status. The API adds total and status counts to the response.
+
+| Test | Expected | Observed | Result |
+|---|---|---|---|
+| Seat map for show 35 | HTTP 200 and seat list | HTTP 200; 70 seats returned | Passed |
+| Initial seat map for show 212 | All seats and current statuses | HTTP 200; screen 18; 70 seats; 60 available, 1 held, 9 booked while temporary hold existed | Passed |
+| Create temporary hold for A1 | Booking created and A1 becomes HELD | Booking 994 created; A1 returned as HELD | Passed |
+| Release test hold | A1 becomes AVAILABLE | Booking 994 marked EXPIRED; release trigger deactivated its booking-seat row; A1 returned as AVAILABLE | Passed |
+| Final function-backed response | Seat prices and statuses included | HTTP 200; 70 seats; 61 available, 0 held, 9 booked; `price` included per seat | Passed |
+
+The temporary test booking was scoped by booking ID 994, customer user ID 53, show ID 212, and status HELD before it was marked EXPIRED. The trigger `trg_release_seats` released its active seat row.
+
+**Test boundary:** The final function-backed response showed nine seats with status BOOKED, but a separate new payment-confirmation test was not performed during this change.
 
 ## 7. Transaction rollback test
 

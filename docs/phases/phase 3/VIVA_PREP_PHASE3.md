@@ -119,11 +119,31 @@ A: It contains database credentials and the JWT secret. Each teammate creates th
 **Q35. How do you start the backend on Windows?**  
 A: Run `npm install`, then `npm.cmd run dev` from the backend folder.
 
+## Part G — Seat map API (added 8 November 2026)
+
+**Q36. Why does the frontend need a seat-map endpoint?**  
+A: A seat-picker needs the exact seat numbers and current status, not just an aggregate count of available seats.
+
+**Q37. What is the seat-map endpoint?**  
+A: `GET /api/shows/:id/seats`. It returns all seats for the screen assigned to a show, with category, price, and status, plus aggregate counts.
+
+**Q38. Which PostgreSQL function does the endpoint use?**  
+A: It calls `fn_seat_map(show_id)`, so seat-availability rules remain in the database instead of being duplicated in JavaScript.
+
+**Q39. What are the three seat statuses?**  
+A: `AVAILABLE` means the seat can be selected; `HELD` means a live temporary hold exists; `BOOKED` means the booking is confirmed. Expired holds are treated as available by the database function.
+
+**Q40. Does viewing the seat map reserve a seat?**  
+A: No. The seat-map endpoint is read-only. The frontend must call `POST /api/bookings` to create a temporary hold.
+
+**Q41. How was the seat-map endpoint tested?**  
+A: The endpoint returned HTTP 200 with 70 seats. A temporary booking for A1 changed its status to HELD. After the test booking was marked EXPIRED and the release trigger ran, A1 returned to AVAILABLE. The final function-backed response also included seat prices and showed nine booked seats.
+
 ## Quick endpoint revision
 
 | Area | Endpoint examples |
 |---|---|
-| Shows | `GET /api/shows`, `GET /api/shows/:id` |
+| Shows | `GET /api/shows`, `GET /api/shows/:id`, `GET /api/shows/:id/seats` |
 | Bookings | `POST /api/bookings`, `GET /api/bookings/me` |
 | Booking actions | `/api/bookings/:bookingId/confirm`, `/cancel`, `/failed-payment` |
 | Manager | `/api/manager/shows`, `/occupancy`, `/revenue` |

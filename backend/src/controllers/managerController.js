@@ -145,8 +145,203 @@ const getVenueRevenue = async (req, res) => {
     }
 };
 
+// 4. Options for the "schedule a show" form: own screens (with seat
+//    categories) and the movie catalogue
+const getScheduleOptions = async (req, res) => {
+    try {
+        const managerId = req.user.userId;
+
+        const screens = await pool.query(
+            `SELECT
+                sc.screen_id,
+                sc.screen_name,
+                v.name AS venue_name,
+                ARRAY(
+                    SELECT DISTINCT se.category
+                    FROM seat se
+                    WHERE se.screen_id = sc.screen_id
+                    ORDER BY se.category
+                ) AS categories
+             FROM venue v
+             JOIN screen sc ON sc.venue_id = v.venue_id
+             WHERE v.manager_id = $1
+             ORDER BY v.name, sc.screen_name`,
+            [managerId]
+        );
+
+        const movies = await pool.query(
+            `SELECT movie_id, title, language, duration_min
+             FROM movie
+             ORDER BY title`
+        );
+
+        res.json({
+            success: true,
+            screens: screens.rows,
+            movies: movies.rows
+        });
+
+    } catch (error) {
+        console.error("Schedule options error:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Unable to load scheduling options"
+        });
+    }
+};
+
+// 5. Schedule a show on one of the manager's own screens and set the
+//    per-category prices. Both inserts run in ONE transaction, so a
+//    failure leaves neither a show without prices nor orphan prices.
+//    Overlap protection is left to the database (EXCLUDE constraint).
+const createShow = async (req, res) => {
+    const managerId = req.user.userId;
+    const { movieId, screenId, startTime, prices } = req.body || {};
+
+    const start = new Date(startTime);
+    if (!movieId || !screenId || !startTime || Number.isNaN(start.getTime())) {
+        return res.status(400).json({
+            success: false,
+            message: "Provide a movie, a screen and a valid start time"
+        });
+    }
+
+    if (start.getTime() <= Date.now()) {
+        return res.status(400).json({
+            success: false,
+            message: "Start time must be in the future"
+        });
+    }
+
+    if (!prices || typeof prices !== "object") {
+        return res.status(400).json({
+            success: false,
+            message: "Provide a price for each seat category"
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        // The screen must belong to a venue managed by this user
+        const screen = await client.query(
+            `SELECT sc.screen_id
+             FROM screen sc
+             JOIN venue v ON v.venue_id = sc.venue_id
+             WHERE sc.screen_id = $1 AND v.manager_id = $2`,
+            [screenId, managerId]
+        );
+
+        if (screen.rows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(403).json({
+                success: false,
+                message: "You can only schedule shows on your own venue's screens"
+            });
+        }
+
+        const movie = await client.query(
+            "SELECT duration_min FROM movie WHERE movie_id = $1",
+            [movieId]
+        );
+
+        if (movie.rows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({
+                success: false,
+                message: "Movie not found"
+            });
+        }
+
+        // Every seat category on the screen needs a price (the booking
+        // table references SHOW_PRICE for each seat's category)
+        const categories = await client.query(
+            "SELECT DISTINCT category FROM seat WHERE screen_id = $1",
+            [screenId]
+        );
+
+        const priceRows = [];
+        for (const { category } of categories.rows) {
+            const price = Number(prices[category]);
+            if (!Number.isFinite(price) || price <= 0) {
+                await client.query("ROLLBACK");
+                return res.status(400).json({
+                    success: false,
+                    message: `Enter a price greater than 0 for ${category}`
+                });
+            }
+            priceRows.push([category, price]);
+        }
+
+        if (priceRows.length === 0) {
+            await client.query("ROLLBACK");
+            return res.status(400).json({
+                success: false,
+                message: "This screen has no seats"
+            });
+        }
+
+        const show = await client.query(
+            `INSERT INTO movie_show (movie_id, screen_id, start_time, end_time)
+             VALUES ($1, $2, $3::timestamptz,
+                     $3::timestamptz + make_interval(mins => $4))
+             RETURNING show_id, start_time, end_time`,
+            [movieId, screenId, start.toISOString(), movie.rows[0].duration_min]
+        );
+
+        const showId = show.rows[0].show_id;
+
+        for (const [category, price] of priceRows) {
+            await client.query(
+                `INSERT INTO show_price (show_id, category, price)
+                 VALUES ($1, $2, $3)`,
+                [showId, category, price]
+            );
+        }
+
+        await client.query("COMMIT");
+
+        res.status(201).json({
+            success: true,
+            message: "Show scheduled successfully",
+            show: show.rows[0]
+        });
+
+    } catch (error) {
+        await client.query("ROLLBACK").catch(() => {});
+
+        // 23P01 = exclusion violation (overlapping show on the screen)
+        if (error.code === "23P01") {
+            return res.status(409).json({
+                success: false,
+                message: "This screen already has a show that overlaps this time"
+            });
+        }
+
+        // 23514 = CHECK violation, P0001 = rule raised by a trigger
+        if (error.code === "23514" || error.code === "P0001") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
+
+        console.error("Create show error:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Unable to schedule show"
+        });
+    } finally {
+        client.release();
+    }
+};
+
 module.exports = {
     getVenueShows,
     getVenueOccupancy,
-    getVenueRevenue
+    getVenueRevenue,
+    getScheduleOptions,
+    createShow
 };

@@ -4,7 +4,9 @@ const router = express.Router();
 const {
     getVenueShows,
     getVenueOccupancy,
-    getVenueRevenue
+    getVenueRevenue,
+    getScheduleOptions,
+    createShow
 } = require("../controllers/managerController");
 
 const {
@@ -23,5 +25,11 @@ router.get("/occupancy", getVenueOccupancy);
 
 // View venue revenue
 router.get("/revenue", getVenueRevenue);
+
+// Options (own screens + movies) for the schedule-a-show form
+router.get("/schedule-options", getScheduleOptions);
+
+// Schedule a new show with per-category prices (one transaction)
+router.post("/shows", createShow);
 
 module.exports = router;

@@ -1,13 +1,23 @@
-const { Pool } = require('pg');
 
-// Configurable for controlled before/after load tests (default: pg's 10).
+const { Pool } = require("pg");
+
+// Create a connection pool
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: Number(process.env.DB_PORT || 5432),
-  database: process.env.DB_NAME || 'cinebook',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
-  max: Number(process.env.DB_POOL_MAX || 10),
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
 });
-pool.on('error', err => console.error('Unexpected database pool error:', err.message));
+
+// Check database connection
+pool.on("connect", () => {
+    console.log("Connected to CineBook PostgreSQL database!");
+});
+
+// Handle unexpected database errors
+pool.on("error", (err) => {
+    console.error("Unexpected database error:", err.message);
+});
+
 module.exports = pool;

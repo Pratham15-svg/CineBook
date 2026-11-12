@@ -1,6 +1,6 @@
 # CineBook: Phase 3 Handover — Backend
 
-**Prepared:** 6 November 2026  
+**Prepared:** 8 November 2026  
 **Scope:** Node.js + Express backend, PostgreSQL integration, authentication, customer booking APIs, manager APIs, admin APIs, and local verification.
 
 ## 1. Phase 3 outcome
@@ -52,6 +52,7 @@ These are test credentials, not production credentials.
 - `GET /api/me`
 - `GET /api/shows`
 - `GET /api/shows/:id`
+- `GET /api/shows/:id/seats` — returns every seat on the show screen, its category, show-specific price, and current status (`AVAILABLE`, `HELD`, or `BOOKED`), plus aggregate counts.
 
 ### Customer bookings
 
@@ -105,6 +106,34 @@ PostgreSQL remains the source of truth for seat availability, booking limits, pr
 A test transaction called `sp_confirm_booking` for temporary booking 991 and then rolled back. The booking remained HELD, its total remained ₹440, and there were no payment or successful-payment rows. This verified that the attempted confirmation/payment changes were not committed.
 
 Temporary bookings 989, 990, and 991 were subsequently cleaned up. Their booking, seat, payment, and audit rows were verified absent.
+
+## 6A. Seat-by-seat map API (added 8 November 2026)
+
+The missing seat-map endpoint was implemented and tested locally:
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/shows/:id/seats` | Returns every seat for the screen assigned to the show, with category, show price, and availability status. |
+
+Example request: `GET http://localhost:5000/api/shows/212/seats`
+
+The controller validates the show ID, checks that the show exists, and calls the existing PostgreSQL function `fn_seat_map(show_id)`. The response includes `show_id`, `screen_id`, `total_seats`, `available_seats`, `held_seats`, `booked_seats`, and a `seats` array. Each seat contains `seat_no`, `category`, `price`, and `status`.
+
+Status meanings:
+- `AVAILABLE`: no current active confirmed booking or unexpired hold for that seat.
+- `HELD`: a live temporary booking hold exists.
+- `BOOKED`: the booking is confirmed.
+
+The database function treats expired holds as available, even before the expiry sweep runs. The endpoint is read-only; booking and hold creation still use the existing booking APIs and procedures.
+
+### Seat-map verification (8 November 2026)
+- `GET /api/shows/35/seats` returned HTTP 200 and a 70-seat map.
+- For show 212, the final function-backed endpoint returned HTTP 200, screen 18, 70 seats, with 61 available, 0 held, and 9 booked at the time of testing.
+- A temporary booking for show 212, seat A1, created booking 994 and changed A1 to `HELD` in the seat map.
+- Booking 994 was marked `EXPIRED` in a guarded SQL update; the existing release trigger set its seat reservation inactive. A subsequent seat-map request showed A1 as `AVAILABLE` again.
+- The final endpoint uses `fn_seat_map()` and its response includes seat prices.
+
+The final response showed nine booked seats. A separate new payment-confirmation test was not performed as part of this seat-map change.
 
 ## 7. Verification performed
 

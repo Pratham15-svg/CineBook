@@ -84,6 +84,24 @@ The separate transaction is important: otherwise the failed-payment record would
 
 The `:bookingId` part is replaced by the actual booking ID.
 
+## 8A. How the seat-picker gets its seat map
+
+The frontend needs more than a count of available seats. It needs the exact seat numbers and whether each seat can be selected. CineBook now provides:
+
+`GET /api/shows/:id/seats`
+
+For example: `GET http://localhost:5000/api/shows/212/seats`
+
+The response contains a list of seats. Each seat includes:
+- `seat_no`: the seat label, such as `A1`
+- `category`: the seat category
+- `price`: the price for that category for this show
+- `status`: `AVAILABLE`, `HELD`, or `BOOKED`
+
+The response also includes total, available, held, and booked seat counts.
+
+The backend uses the existing PostgreSQL function `fn_seat_map(show_id)`. This function checks active seat reservations and booking status. A live hold is `HELD`; a confirmed booking is `BOOKED`; an expired hold is treated as available. The seat-map endpoint only reads availability. To actually hold seats, the frontend must still call `POST /api/bookings`.
+
 ## 9. Manager and admin features
 
 Managers can retrieve shows, occupancy, and revenue for their venue scope.
