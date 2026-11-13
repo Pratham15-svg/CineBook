@@ -222,7 +222,7 @@ CineBook/
 
 | Member | Mid-sem role | Phase(s) to lead |
 |---|---|---|
-| Pratham Singla | Core DB design | Phase 1 (lead), Phase 3 (DB-heavy endpoints) |
+| Pratham Singla | Core DB design | Phase 1 (lead), Phase 3 (DB-heavy endpoints), GitHub repository setup (repo creation, folder structure, commits, `final` tag) |
 | Harinandha L | Requirements/rules | Phase 4 (lead), Phase 5 |
 | Imran Hafeez S | Application design | Phase 3 (lead), Phase 4 |
 | Arjun Rathore | GitHub/data plan | Phase 2 (lead), repo upkeep throughout |
