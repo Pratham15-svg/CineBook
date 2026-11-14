@@ -5,18 +5,17 @@
 ## What this phase is about
 Phase 1 built the schema, triggers and booking procedures. Phase 2 makes the database ready for the backend and proves that it enforces the rules. It has three parts:
 
-1. **Fill the gaps found in the Phase 1 SQL** (`db/05_views_indexes.sql`): indexes, the "show must be in the future" rule, the hold-expiry and failed-payment procedures, and the read queries the app needs.
+1. **Fill the gaps found in the Phase 1 SQL** (`db/05_indexes_views.sql`): indexes, the "show must be in the future" rule, the hold-expiry and failed-payment procedures, and the read queries the app needs.
 2. **Seed the database** with about 10,000 rows of realistic fake data (`db/seed/`).
 3. **Try to break the database on purpose** (workflow W3): 38 tests, all passing (`db/tests/w3_tests.sql`).
 
 ## What changed
 
 ### Updated files
-- `db/04_procedures.sql`: `sp_expire_holds` is no longer defined here; it moved to `db/05_views_indexes.sql` (now with an INOUT count of expired bookings). `sp_create_booking` runs the same expiry update inline at the start of each booking attempt instead of calling the procedure. `sp_confirm_booking` still only raises "hold has expired" (an UPDATE before the RAISE would be rolled back with the error), and its comment now points to `05_views_indexes.sql`.
-- `db/05_views_indexes.sql`: rewritten (see below). The three Phase 1 views are replaced by the new set, and `sp_expire_holds` now lives here.
-- `README.md`: progress table, project structure and setup instructions updated.
+- `db/04_procedures.sql`: `sp_expire_holds` is no longer defined here; it moved to `db/05_indexes_views.sql` (now with an INOUT count of expired bookings). `sp_create_booking` runs the same expiry update inline at the start of each booking attempt instead of calling the procedure. `sp_confirm_booking` still only raises "hold has expired" (an UPDATE before the RAISE would be rolled back with the error), and its comment now points to `05_indexes_views.sql`.
+- `db/05_indexes_views.sql`: rewritten (see below). The three Phase 1 views are replaced by the new set, and `sp_expire_holds` now lives here.
 
-### What `db/05_views_indexes.sql` now contains
+### What `db/05_indexes_views.sql` now contains
 | Part | What it adds |
 |---|---|
 | Indexes | Foreign-key and search indexes on `MOVIE_SHOW`, `VENUE`, `BOOKING`, `PAYMENT`, `BOOKING_AUDIT`; a partial index on HELD bookings for the expiry sweep; a unique index on `lower(email)` |
@@ -34,7 +33,7 @@ Phase 1 built the schema, triggers and booking procedures. Phase 2 makes the dat
 - `db/tests/step1_test.sql`: checks everything in `05` (needs an empty database).
 - `db/tests/w3_tests.sql`: the 38 W3 constraint tests (works on empty or seeded database).
 - `docs/w3_test_log.txt`: saved output of the W3 run.
-- `docker-compose.yml` and `env.example`: start PostgreSQL and auto-run `db/00` to `db/05` on first start.
+- `docker-compose.yml` and `.env.example`: start PostgreSQL and auto-run `db/00` to `db/05` on first start.
 
 ## Results
 | Table | Rows | | Table | Rows |
@@ -62,6 +61,6 @@ docker exec -i cinebook-db psql -U postgres -d cinebook < db/tests/w3_tests.sql
 The last command must end with a summary of `38 | 38 | 0` and `ROLLBACK` (the tests save nothing).
 
 ## Notes
-- Docker only runs the SQL files the first time the data volume is created. If the volume already exists, run `db/05_views_indexes.sql` by hand, or start fresh with `docker compose down -v` (this deletes all data).
+- Docker only runs the SQL files the first time the data volume is created. If the volume already exists, run `db/05_indexes_views.sql` by hand, or start fresh with `docker compose down -v` (this deletes all data).
 - The 8 HELD bookings in the seed lapse 10 minutes after seeding, because they carry a real 10-minute hold.
 - `smoke_test.sql` and `step1_test.sql` insert their own "Hyderabad" city, so run them on an empty database, before seeding.
