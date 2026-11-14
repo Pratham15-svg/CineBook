@@ -127,3 +127,6 @@ docker compose exec -T db psql -U postgres -d cinebook < db/tests/explain_compar
 | Imran Hafeez S | Application design |
 | Arjun Rathore | Data plan and seed data |
 | Sushanth Reddy Kompally | Queries, views and reporting |
+
+## Final submission
+Tag: `final` · Commit: `2389733`
