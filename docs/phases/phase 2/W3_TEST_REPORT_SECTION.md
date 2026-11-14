@@ -1,6 +1,6 @@
 # W3 Constraint Testing: report-ready section
 
-Paste or adapt this into the final report (Phase 6). Use `docs/w3_test_log.txt` and screenshots as the evidence.
+Use `docs/w3_test_log.txt` and screenshots as the evidence.
 
 ---
 
@@ -84,7 +84,7 @@ docker exec -i cinebook-db psql -U postgres -d w3_check < db/01_tables.sql
 docker exec -i cinebook-db psql -U postgres -d w3_check < db/02_constraints.sql
 docker exec -i cinebook-db psql -U postgres -d w3_check < db/03_triggers.sql
 docker exec -i cinebook-db psql -U postgres -d w3_check < db/04_procedures.sql
-docker exec -i cinebook-db psql -U postgres -d w3_check < db/05_views_indexes.sql
+docker exec -i cinebook-db psql -U postgres -d w3_check < db/05_indexes_views.sql
 docker exec cinebook-db psql -U postgres -d w3_check -c "DROP INDEX uq_active_seat_per_show"
 docker exec -i cinebook-db psql -U postgres -d w3_check < db/tests/w3_tests.sql
 ```
