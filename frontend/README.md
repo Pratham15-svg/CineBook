@@ -1,16 +1,38 @@
-# React + Vite
+# CineBook Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React app built with Vite. Uses React Router for navigation and Axios for API calls.
 
-Currently, two official plugins are available:
+## Run
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+npm run dev
+```
+The dev server runs on http://localhost:5173 and proxies `/api` to the backend on port 5050 (see `vite.config.js`). In Docker the app is served by nginx on port 8080.
 
-## React Compiler
+## Scripts
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run lint` | Run ESLint |
 
-## Expanding the ESLint configuration
+## Structure
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```
+src/
+├── api/          API client
+├── components/   shared components
+├── pages/        one file per page
+└── styles/       CSS files
+```
+
+## Pages
+
+| Role | Routes |
+|---|---|
+| Public | `/`, `/login`, `/register`, `/shows`, `/shows/:id` |
+| Customer | `/shows/:id/seats`, `/checkout/:bookingId`, `/my-bookings` |
+| Manager | `/manager/dashboard`, `/manager/schedule` |
+| Admin | `/admin/dashboard`, `/admin/cities`, `/admin/venues`, `/admin/screens`, `/admin/movies` |
