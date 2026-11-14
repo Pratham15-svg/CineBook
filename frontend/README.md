@@ -36,3 +36,4 @@ src/
 | Customer | `/shows/:id/seats`, `/checkout/:bookingId`, `/my-bookings` |
 | Manager | `/manager/dashboard`, `/manager/schedule` |
 | Admin | `/admin/dashboard`, `/admin/cities`, `/admin/venues`, `/admin/screens`, `/admin/movies` |
+

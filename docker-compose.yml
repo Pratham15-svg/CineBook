@@ -59,3 +59,4 @@ services:
     profiles: [tools]
 volumes:
   cinebook_pgdata:
+
